@@ -2,6 +2,8 @@
 Copyright: Boaz Segev, 2017-2019
 License: MIT
 */
+#include "fiobj4fio.h"
+#include "fiobj_str.h"
 #include <fio.h>
 
 #include <http1.h>
@@ -175,7 +177,6 @@ static FIOBJ headers2str(http_s *h, uintptr_t padding) {
 
 /** Should send existing headers and data */
 static int http1_send_body(http_s *h, void *data, uintptr_t length) {
-
   FIOBJ packet = headers2str(h, length);
   if (!packet) {
     http1_after_finish(h);
@@ -186,6 +187,48 @@ static int http1_send_body(http_s *h, void *data, uintptr_t length) {
   http1_after_finish(h);
   return 0;
 }
+
+/** Push for data - unsupported. */
+static int http1_push_data(http_s *h, void *data, uintptr_t length) {
+  FIOBJ packet = fiobj_str_new(0, 0);
+  if (!packet) {
+    http1_after_finish(h);
+    return -1;
+  }
+
+  char lenbuf[129];
+  size_t len = sprintf(lenbuf, "%X", (unsigned)length);
+  fiobj_str_write(packet, lenbuf, len);
+  fiobj_str_write(packet, "\r\n", 2);
+  fiobj_str_write(packet, data, length);
+  fiobj_str_write(packet, "\r\n", 2);
+  fiobj_send_free((handle2pr(h)->p.uuid), packet);
+  return 0;
+}
+
+static int http1_stream(http_s *h) {
+  FIOBJ packet = headers2str(h, 0);
+  if (!packet) {
+    http1_after_finish(h);
+    return -1;
+  }
+
+  fiobj_send_free((handle2pr(h)->p.uuid), packet);
+  return 0;
+}
+
+static int http1_end_stream(http_s *h) {
+  FIOBJ packet = fiobj_str_new( "0\r\n", 3 );
+  if (!packet) {
+    http1_after_finish(h);
+    return -1;
+  }
+
+  fiobj_send_free((handle2pr(h)->p.uuid), packet);
+  return 0;
+}
+
+
 /** Should send existing headers and file */
 static int http1_sendfile(http_s *h, int fd, uintptr_t length,
                           uintptr_t offset) {
@@ -229,15 +272,7 @@ static void htt1p_finish(http_s *h) {
   }
   http1_after_finish(h);
 }
-/** Push for data - unsupported. */
-static int http1_push_data(http_s *h, void *data, uintptr_t length,
-                           FIOBJ mime_type) {
-  return -1;
-  (void)h;
-  (void)data;
-  (void)length;
-  (void)mime_type;
-}
+
 /** Push for files - unsupported. */
 static int http1_push_file(http_s *h, FIOBJ filename, FIOBJ mime_type) {
   return -1;
@@ -530,6 +565,8 @@ struct http_vtable_s HTTP1_VTABLE = {
     .http_send_body = http1_send_body,
     .http_sendfile = http1_sendfile,
     .http_finish = htt1p_finish,
+    .http_stream = http1_stream,
+    .http_end_stream = http1_end_stream,
     .http_push_data = http1_push_data,
     .http_push_file = http1_push_file,
     .http_on_pause = http1_on_pause,

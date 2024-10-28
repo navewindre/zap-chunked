@@ -32,12 +32,13 @@ struct http_vtable_s {
   int (*const http_sendfile)(http_s *h, int fd, uintptr_t length,
                              uintptr_t offset);
   /** Should send existing headers and data and prepare for streaming */
-  int (*const http_stream)(http_s *h, void *data, uintptr_t length);
+  int (*const http_stream)(http_s *h);
+  int (*const http_end_stream)(http_s *h);
+
   /** Should send existing headers or complete streaming */
   void (*const http_finish)(http_s *h);
   /** Push for data. */
-  int (*const http_push_data)(http_s *h, void *data, uintptr_t length,
-                              FIOBJ mime_type);
+  int (*const http_push_data)(http_s *h, void *data, uintptr_t length);
   /** Upgrades a connection to Websockets. */
   int (*const http2websocket)(http_s *h, websocket_settings_s *arg);
   /** Push for files. */

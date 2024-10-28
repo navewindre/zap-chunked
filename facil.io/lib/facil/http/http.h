@@ -196,6 +196,10 @@ int http_set_cookie(http_s *h, http_cookie_args_s);
  */
 int http_send_body(http_s *h, void *data, uintptr_t length);
 
+int http_push_data(http_s *h, void* data, uintptr_t length);
+int http_stream(http_s* h);
+int http_end_stream(http_s* h);
+
 /**
  * Sends the response headers and the specified file (the response's body).
  *
@@ -248,7 +252,7 @@ void http_finish(http_s *h);
  *
  * Returns -1 on error and 0 on success.
  */
-int http_push_data(http_s *h, void *data, uintptr_t length, FIOBJ mime_type);
+int http_push_data(http_s *h, void *data, uintptr_t length);
 
 /**
  * Pushes a file response when supported (HTTP/2 only).

@@ -367,6 +367,29 @@ pub fn sendJson(self: *const Self, json: []const u8) HttpError!void {
     } else |err| return err;
 }
 
+/// Sets the request as chunked.
+/// Sets the appropriate headers and forwards the headers to the client.
+/// Cannot be undone.
+pub fn setChunked(self: *const Self) HttpError!void {
+    try self.setHeader("transfer-encoding", "chunked");
+    try self.setHeader("content-length", "0");
+    try self.setHeader("connection", "keep-alive");
+
+    if (fio.http_stream(self.h) != 0) return error.HttpSendBody;
+}
+
+pub fn sendChunk(self: *const Self, chunk: []const u8) HttpError!void {
+     if (fio.http_push_data(
+         self.h,
+         @as(*anyopaque, @ptrFromInt(@intFromPtr(chunk.ptr))),
+         chunk.len) != 0)
+       return error.HttpSendBody;
+}
+
+pub fn endStream(self: *const Self) HttpError!void {
+    if (fio.http_end_stream(self.h) != 0) return error.HttpSendBody;
+}
+
 /// Set content type.
 pub fn setContentType(self: *const Self, c: ContentType) HttpError!void {
     const s = switch (c) {

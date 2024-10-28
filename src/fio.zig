@@ -125,6 +125,9 @@ pub const struct_fio_str_info_s = extern struct {
 };
 pub const fio_str_info_s = struct_fio_str_info_s;
 pub extern fn http_send_body(h: [*c]http_s, data: ?*anyopaque, length: usize) c_int;
+pub extern fn http_push_data(h: [*c]http_s, data: ?*anyopaque, length: usize) c_int;
+pub extern fn http_stream(h: [*c]http_s) c_int;
+pub extern fn http_end_stream(h: [*c]http_s) c_int;
 pub fn fiobj_each1(arg_o: FIOBJ, arg_start_at: usize, arg_task: ?*const fn (FIOBJ, ?*anyopaque) callconv(.C) c_int, arg_arg: ?*anyopaque) callconv(.C) usize {
     const o = arg_o;
     const start_at = arg_start_at;
@@ -426,7 +429,6 @@ pub extern fn http_sendfile(h: [*c]http_s, fd: c_int, length: usize, offset: usi
 pub extern fn http_sendfile2(h: [*c]http_s, prefix: [*c]const u8, prefix_len: usize, encoded: [*c]const u8, encoded_len: usize) c_int;
 pub extern fn http_send_error(h: [*c]http_s, error_code: usize) c_int;
 pub extern fn http_finish(h: [*c]http_s) void;
-pub extern fn http_push_data(h: [*c]http_s, data: ?*anyopaque, length: usize, mime_type: FIOBJ) c_int;
 pub extern fn http_push_file(h: [*c]http_s, filename: FIOBJ, mime_type: FIOBJ) c_int;
 pub const struct_http_pause_handle_s = opaque {};
 pub const http_pause_handle_s = struct_http_pause_handle_s;

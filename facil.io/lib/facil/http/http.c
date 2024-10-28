@@ -346,6 +346,35 @@ int http_send_body(http_s *r, void *data, uintptr_t length) {
   return ((http_vtable_s *)r->private_data.vtbl)
       ->http_send_body(r, data, length);
 }
+
+int http_push_data(http_s *r, void *data, uintptr_t length) {
+  if (HTTP_INVALID_HANDLE(r))
+    return -1;
+  if (!length || !data) {
+    http_finish(r);
+    return 0;
+  }
+
+  return ((http_vtable_s *)r->private_data.vtbl)
+      ->http_push_data(r, data, length);
+}
+
+int http_stream(http_s* r) {
+  if (HTTP_INVALID_HANDLE(r))
+    return -1;
+
+  return ((http_vtable_s *)r->private_data.vtbl)
+    ->http_stream(r);
+}
+
+int http_end_stream(http_s* r) {
+  if (HTTP_INVALID_HANDLE(r))
+    return -1;
+
+  return ((http_vtable_s *)r->private_data.vtbl)
+    ->http_end_stream(r);
+}
+
 /**
  * Sends the response headers and the specified file (the response's body).
  *
@@ -665,17 +694,7 @@ void http_finish(http_s *r) {
   add_date(r);
   ((http_vtable_s *)r->private_data.vtbl)->http_finish(r);
 }
-/**
- * Pushes a data response when supported (HTTP/2 only).
- *
- * Returns -1 on error and 0 on success.
- */
-int http_push_data(http_s *r, void *data, uintptr_t length, FIOBJ mime_type) {
-  if (!r || !(http_fio_protocol_s *)r->private_data.flag)
-    return -1;
-  return ((http_vtable_s *)r->private_data.vtbl)
-      ->http_push_data(r, data, length, mime_type);
-}
+
 /**
  * Pushes a file response when supported (HTTP/2 only).
  *
