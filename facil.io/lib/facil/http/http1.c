@@ -224,6 +224,7 @@ static int http1_end_stream(http_s *h) {
     return -1;
   }
 
+  fiobj_str_write(packet, "\r\n", 2 );
   fiobj_send_free((handle2pr(h)->p.uuid), packet);
   http1_after_finish(h);
   return 0;
