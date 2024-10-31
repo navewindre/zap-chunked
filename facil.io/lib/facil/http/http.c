@@ -588,7 +588,7 @@ found_file:
   case 7:
     if (!strncasecmp("options", s.data, 7)) {
       http_set_header2(h, (fio_str_info_s){.data = (char *)"allow", .len = 5},
-                       (fio_str_info_s){.data = (char *)"GET, HEAD", .len = 9});
+                       (fio_str_info_s){.data = (char *)"GET, HEAD, POST", .len = 15});
       h->status = 200;
       http_finish(h);
       return 0;
@@ -604,6 +604,8 @@ found_file:
       http_finish(h);
       return 0;
     }
+    if (!strncasecmp("post", s.data, 4))
+      goto open_file;
     break;
   }
   http_send_error(h, 403);
