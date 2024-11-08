@@ -372,7 +372,6 @@ pub fn sendJson(self: *const Self, json: []const u8) HttpError!void {
 /// Cannot be undone.
 pub fn setChunked(self: *const Self) HttpError!void {
     try self.setHeader("transfer-encoding", "chunked");
-    try self.setHeader("content-length", "0");
     try self.setHeader("connection", "keep-alive");
 
     if (fio.http_stream(self.h) != 0) return error.HttpSendBody;
